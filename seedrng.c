@@ -347,7 +347,7 @@ static int seed_from_file_if_exists(const char *filename, bool credit, struct bl
 	blake2s_update(hash, &seed_len, sizeof(seed_len));
 	blake2s_update(hash, seed, seed_len);
 
-	fprintf(stderr, "Seeding %zd bits %s crediting\n", seed_len * 8, credit ? "and" : "without");
+	fprintf(stdout, "Seeding %zd bits %s crediting\n", seed_len * 8, credit ? "and" : "without");
 	ret = seed_rng(seed, seed_len, credit);
 	if (ret < 0)
 		fprintf(stderr, "ERROR: Unable to seed: %s\n", strerror(-ret));
@@ -408,7 +408,7 @@ int main(int argc __attribute__((unused)), char *argv[] __attribute__((unused)))
 	blake2s_update(&hash, new_seed, new_seed_len);
 	blake2s_final(&hash, new_seed + new_seed_len - BLAKE2S_HASH_LEN);
 
-	fprintf(stderr, "Saving %zu bits of %s seed for next boot\n", new_seed_len * 8, new_seed_creditable ? "creditable" : "non-creditable");
+	fprintf(stdout, "Saving %zu bits of %s seed for next boot\n", new_seed_len * 8, new_seed_creditable ? "creditable" : "non-creditable");
 	fd = open(NON_CREDITABLE_SEED, O_WRONLY | O_CREAT | O_TRUNC, 0400);
 	if (fd < 0) {
 		fprintf(stderr, "ERROR: Unable to open seed file for writing: %s\n", strerror(errno));
