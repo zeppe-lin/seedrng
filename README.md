@@ -28,7 +28,10 @@ when writing new seed files:
 new_seed = new_seed[:-32] || HASH(fixed_prefix || real_time || boot_time || old_seed_len || old_seed || new_seed_len || new_seed)
 ```
 
-The seed is stored in `LOCALSTATEDIR/seedrng/`, which can be adjusted at compile time.
+The seed is stored in `LOCALSTATEDIR/seedrng/`, which can be adjusted at
+compile time. If the `SEEDRNG_SKIP_CREDIT` environment variable is set to `1`,
+`true`, `yes`, or `y`, then seeds never credit the RNG, even if the seed file
+is creditable.
 
 ### Building &amp; Installing
 

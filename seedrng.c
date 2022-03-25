@@ -354,6 +354,13 @@ static int seed_from_file_if_exists(const char *filename, bool credit, struct bl
 	return ret;
 }
 
+static bool skip_credit(void)
+{
+	const char *skip = getenv("SEEDRNG_SKIP_CREDIT");
+	return skip && (!strcmp(skip, "1") || !strcasecmp(skip, "true") ||
+			!strcasecmp(skip, "yes") || !strcasecmp(skip, "y"));
+}
+
 int main(int argc __attribute__((unused)), char *argv[] __attribute__((unused)))
 {
 	static const char seedrng_prefix[] = "SeedRNG v1 Old+New Prefix";
@@ -392,7 +399,7 @@ int main(int argc __attribute__((unused)), char *argv[] __attribute__((unused)))
 	ret = seed_from_file_if_exists(NON_CREDITABLE_SEED, false, &hash);
 	if (ret < 0)
 		program_ret |= 1 << 1;
-	ret = seed_from_file_if_exists(CREDITABLE_SEED, true, &hash);
+	ret = seed_from_file_if_exists(CREDITABLE_SEED, !skip_credit(), &hash);
 	if (ret < 0)
 		program_ret |= 1 << 2;
 
