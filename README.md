@@ -5,9 +5,6 @@ SeedRNG is a simple program made for seeding the Linux kernel random number
 generator from seed files. The program takes no arguments, must be run as root,
 and always attempts to do something useful.
 
-Being a single C file, `seedrng.c`, SeedRNG is meant to be copy and pasted
-verbatim into various minimal init system projects and tweaked as needed.
-
 This program is useful in light of the fact that the Linux kernel RNG cannot be
 initialized from shell scripts, and new seeds cannot be safely generated from
 boot time shell scripts either.
@@ -32,6 +29,11 @@ The seed is stored in `LOCALSTATEDIR/seedrng/`, which can be adjusted at
 compile time. If the `SEEDRNG_SKIP_CREDIT` environment variable is set to `1`,
 `true`, `yes`, or `y`, then seeds never credit the RNG, even if the seed file
 is creditable.
+
+Being a single C file, `seedrng.c`, SeedRNG is meant to be copy and pasted
+verbatim into various minimal init system projects and tweaked as needed.
+**Please do not package this repo as a standalone program**: it is intended as
+utility code meant to be imported into existing projects instead.
 
 ### Building &amp; Installing
 
