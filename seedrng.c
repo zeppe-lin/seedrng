@@ -272,7 +272,7 @@ static int read_new_seed(uint8_t *seed, size_t len, bool *is_creditable)
 	if (ret == (ssize_t)len)
 		ret = 0;
 	else
-		ret = -errno ?: -EIO;
+		ret = -errno ? -errno : -EIO;
 	close(urandom_fd);
 	return ret;
 }
@@ -298,7 +298,7 @@ static int seed_rng(uint8_t *seed, size_t len, bool credit)
 		return -errno;
 	ret = ioctl(random_fd, RNDADDENTROPY, &req);
 	if (ret)
-		ret = -errno ?: -EIO;
+		ret = -errno ? -errno : -EIO;
 	close(random_fd);
 	return ret;
 }

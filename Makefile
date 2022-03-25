@@ -5,7 +5,7 @@ LOCALSTATEDIR ?= /var/lib
 RUNSTATEDIR ?= /var/run
 CFLAGS ?= -O2 -pipe
 
-CFLAGS += -std=gnu99 -Wall -Wextra
+CFLAGS += -Wall -Wextra -pedantic
 CFLAGS += -DLOCALSTATEDIR="\"$(LOCALSTATEDIR)\"" -DRUNSTATEDIR="\"$(RUNSTATEDIR)\""
 
 seedrng: seedrng.c
