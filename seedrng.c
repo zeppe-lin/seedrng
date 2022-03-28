@@ -365,7 +365,7 @@ int main(int argc __attribute__((unused)), char *argv[] __attribute__((unused)))
 {
 	static const char seedrng_prefix[] = "SeedRNG v1 Old+New Prefix";
 	static const char seedrng_failure[] = "SeedRNG v1 No New Seed Failure";
-	int ret, fd, lock, program_ret = 0;
+	int ret, fd = -1, lock, program_ret = 0;
 	uint8_t new_seed[MAX_SEED_LEN];
 	size_t new_seed_len;
 	bool new_seed_creditable;
@@ -393,7 +393,8 @@ int main(int argc __attribute__((unused)), char *argv[] __attribute__((unused)))
 	lock = open(LOCK_FILE, O_WRONLY | O_CREAT, 0000);
 	if (lock < 0 || flock(lock, LOCK_EX) < 0) {
 		fprintf(stderr, "ERROR: Unable to open lock file: %s\n", strerror(errno));
-		return 1;
+		program_ret = 1;
+		goto out;
 	}
 
 	ret = seed_from_file_if_exists(NON_CREDITABLE_SEED, false, &hash);
@@ -432,7 +433,9 @@ int main(int argc __attribute__((unused)), char *argv[] __attribute__((unused)))
 		program_ret |= 1 << 6;
 	}
 out:
-	close(fd);
-	close(lock);
+	if (fd >= 0)
+		close(fd);
+	if (lock >= 0)
+		close(lock);
 	return program_ret;
 }
