@@ -64,5 +64,10 @@ However, this invocation should generally come from init and shutdown scripts.
 
 ### License
 
-This program is licensed under any one of the GPL v2, MIT, or Apache 2.0, so
-that it can be incorporated into other software projects as needed.
+This program is licensed under any one of the the following licenses, so that it can be incorporated into other software projects as needed:
+
+    - GPL-2.0
+    - Apache-2.0
+    - MIT
+    - BSD-1-Clause
+    - CC0-1.0
