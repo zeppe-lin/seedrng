@@ -2,11 +2,10 @@ PREFIX ?= /usr
 DESTDIR ?=
 SBINDIR ?= $(PREFIX)/sbin
 LOCALSTATEDIR ?= /var/lib
-RUNSTATEDIR ?= /var/run
 CFLAGS ?= -O2 -pipe
 
 CFLAGS += -Wall -Wextra -pedantic
-CFLAGS += -DLOCALSTATEDIR="\"$(LOCALSTATEDIR)\"" -DRUNSTATEDIR="\"$(RUNSTATEDIR)\""
+CFLAGS += -DLOCALSTATEDIR="\"$(LOCALSTATEDIR)\""
 
 seedrng: seedrng.c
 

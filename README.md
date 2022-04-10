@@ -46,7 +46,6 @@ In addition to the usual compiler environment variables (`CFLAGS`, etc), the
 following environment variable is respected during compilation:
 
   * `LOCALSTATEDIR`        default: `/var/lib`
-  * `RUNSTATEDIR`          default: `/var/run`
 
 The following environment variables are respected during installation:
 
