@@ -292,7 +292,7 @@ static int seed_rng(uint8_t *seed, size_t len, bool credit)
 	}
 	memcpy(req.buffer, seed, len);
 
-	random_fd = open("/dev/random", O_RDWR);
+	random_fd = open("/dev/random", O_RDONLY);
 	if (random_fd < 0)
 		return -1;
 	ret = ioctl(random_fd, RNDADDENTROPY, &req);
