@@ -26,8 +26,8 @@
 #endif
 
 #define SEED_DIR LOCALSTATEDIR "/seedrng"
-#define CREDITABLE_SEED SEED_DIR "/seed.credit"
-#define NON_CREDITABLE_SEED SEED_DIR "/seed.no-credit"
+#define CREDITABLE_SEED "seed.credit"
+#define NON_CREDITABLE_SEED "seed.no-credit"
 
 enum blake2s_lengths {
 	BLAKE2S_BLOCK_LEN = 64,
@@ -309,7 +309,7 @@ static int seed_from_file_if_exists(const char *filename, int dfd, bool credit, 
 	ssize_t seed_len;
 	int fd = -1, ret = 0;
 
-	fd = open(filename, O_RDONLY);
+	fd = openat(dfd, filename, O_RDONLY);
 	if (fd < 0 && errno == ENOENT)
 		return 0;
 	else if (fd < 0) {
@@ -323,7 +323,7 @@ static int seed_from_file_if_exists(const char *filename, int dfd, bool credit, 
 		perror("Unable to read seed file");
 		goto out;
 	}
-	if ((unlink(filename) < 0 || fsync(dfd) < 0) && seed_len) {
+	if ((unlinkat(dfd, filename, 0) < 0 || fsync(dfd) < 0) && seed_len) {
 		ret = -errno;
 		perror("Unable to remove seed after reading, so not seeding");
 		goto out;
@@ -408,7 +408,7 @@ int main(int argc __attribute__((unused)), char *argv[] __attribute__((unused)))
 	blake2s_final(&hash, new_seed + new_seed_len - BLAKE2S_HASH_LEN);
 
 	printf("Saving %zu bits of %s seed for next boot\n", new_seed_len * 8, new_seed_creditable ? "creditable" : "non-creditable");
-	fd = open(NON_CREDITABLE_SEED, O_WRONLY | O_CREAT | O_TRUNC, 0400);
+	fd = openat(dfd, NON_CREDITABLE_SEED, O_WRONLY | O_CREAT | O_TRUNC, 0400);
 	if (fd < 0) {
 		perror("Unable to open seed file for writing");
 		program_ret |= 1 << 4;
@@ -419,7 +419,7 @@ int main(int argc __attribute__((unused)), char *argv[] __attribute__((unused)))
 		program_ret |= 1 << 5;
 		goto out;
 	}
-	if (new_seed_creditable && rename(NON_CREDITABLE_SEED, CREDITABLE_SEED) < 0) {
+	if (new_seed_creditable && renameat(dfd, NON_CREDITABLE_SEED, dfd, CREDITABLE_SEED) < 0) {
 		perror("Unable to make new seed creditable");
 		program_ret |= 1 << 6;
 	}
