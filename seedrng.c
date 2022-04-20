@@ -60,7 +60,7 @@ struct blake2s_state {
 
 static inline void cpu_to_le32_array(uint32_t *buf, unsigned int words)
 {
-        while (words--) {
+	while (words--) {
 		*buf = cpu_to_le32(*buf);
 		++buf;
 	}
@@ -68,10 +68,10 @@ static inline void cpu_to_le32_array(uint32_t *buf, unsigned int words)
 
 static inline void le32_to_cpu_array(uint32_t *buf, unsigned int words)
 {
-        while (words--) {
+	while (words--) {
 		*buf = le32_to_cpup(buf);
 		++buf;
-        }
+	}
 }
 
 static inline uint32_t ror32(uint32_t word, unsigned int shift)
