@@ -220,13 +220,69 @@ static void blake2s_final(struct blake2s_state *state, uint8_t *out)
 	memcpy(out, state->h, state->outlen);
 }
 
+static ssize_t getrandom_full(void *buf, size_t count, unsigned int flags)
+{
+	ssize_t ret, total = 0;
+	uint8_t *p = buf;
+
+	do {
+		ret = getrandom(p, count, flags);
+		if (ret < 0 && errno == EINTR)
+			continue;
+		else if (ret < 0)
+			return ret;
+		total += ret;
+		p += ret;
+		count -= ret;
+	} while (count);
+	return total;
+}
+
+static ssize_t read_full(int fd, void *buf, size_t count)
+{
+	ssize_t ret, total = 0;
+	uint8_t *p = buf;
+
+	do {
+		ret = read(fd, p, count);
+		if (ret < 0 && errno == EINTR)
+			continue;
+		else if (ret < 0)
+			return ret;
+		else if (ret == 0)
+			break;
+		total += ret;
+		p += ret;
+		count -= ret;
+	} while (count);
+	return total;
+}
+
+static ssize_t write_full(int fd, const void *buf, size_t count)
+{
+	ssize_t ret, total = 0;
+	const uint8_t *p = buf;
+
+	do {
+		ret = write(fd, p, count);
+		if (ret < 0 && errno == EINTR)
+			continue;
+		else if (ret < 0)
+			return ret;
+		total += ret;
+		p += ret;
+		count -= ret;
+	} while (count);
+	return total;
+}
+
 static size_t determine_optimal_seed_len(void)
 {
 	size_t ret = 0;
 	char poolsize_str[11] = { 0 };
 	int fd = open("/proc/sys/kernel/random/poolsize", O_RDONLY);
 
-	if (fd < 0 || read(fd, poolsize_str, sizeof(poolsize_str) - 1) < 0) {
+	if (fd < 0 || read_full(fd, poolsize_str, sizeof(poolsize_str) - 1) < 0) {
 		perror("Unable to determine pool size, falling back to 256 bits");
 		ret = MIN_SEED_LEN;
 	} else
@@ -246,7 +302,7 @@ static int read_new_seed(uint8_t *seed, size_t len, bool *is_creditable)
 	int urandom_fd;
 
 	*is_creditable = false;
-	ret = getrandom(seed, len, GRND_NONBLOCK);
+	ret = getrandom_full(seed, len, GRND_NONBLOCK);
 	if (ret == (ssize_t)len) {
 		*is_creditable = true;
 		return 0;
@@ -259,12 +315,12 @@ static int read_new_seed(uint8_t *seed, size_t len, bool *is_creditable)
 			return -errno;
 		*is_creditable = poll(&random_fd, 1, 0) == 1;
 		close(random_fd.fd);
-	} else if (getrandom(seed, len, GRND_INSECURE) == (ssize_t)len)
+	} else if (getrandom_full(seed, len, GRND_INSECURE) == (ssize_t)len)
 		return 0;
 	urandom_fd = open("/dev/urandom", O_RDONLY);
 	if (urandom_fd < 0)
 		return -1;
-	ret = read(urandom_fd, seed, len);
+	ret = read_full(urandom_fd, seed, len);
 	if (ret == (ssize_t)len)
 		ret = 0;
 	else
@@ -292,7 +348,7 @@ static int seed_rng(uint8_t *seed, size_t len, bool credit)
 	}
 	memcpy(req.buffer, seed, len);
 
-	random_fd = open("/dev/random", O_RDONLY);
+	random_fd = open("/dev/urandom", O_RDONLY);
 	if (random_fd < 0)
 		return -1;
 	ret = ioctl(random_fd, RNDADDENTROPY, &req);
@@ -317,7 +373,7 @@ static int seed_from_file_if_exists(const char *filename, int dfd, bool credit, 
 		perror("Unable to open seed file");
 		goto out;
 	}
-	seed_len = read(fd, seed, sizeof(seed));
+	seed_len = read_full(fd, seed, sizeof(seed));
 	if (seed_len < 0) {
 		ret = -errno;
 		perror("Unable to read seed file");
@@ -414,7 +470,7 @@ int main(int argc __attribute__((unused)), char *argv[] __attribute__((unused)))
 		program_ret |= 1 << 4;
 		goto out;
 	}
-	if (write(fd, new_seed, new_seed_len) != (ssize_t)new_seed_len || fsync(fd) < 0) {
+	if (write_full(fd, new_seed, new_seed_len) != (ssize_t)new_seed_len || fsync(fd) < 0) {
 		perror("Unable to write seed file");
 		program_ret |= 1 << 5;
 		goto out;
