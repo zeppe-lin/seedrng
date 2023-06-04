@@ -1,18 +1,32 @@
-PREFIX ?= /usr
-DESTDIR ?=
-SBINDIR ?= $(PREFIX)/sbin
-LOCALSTATEDIR ?= /var/lib
-CFLAGS ?= -O2 -pipe
+.POSIX:
 
-CFLAGS += -Wall -Wextra -pedantic
-CFLAGS += -DLOCALSTATEDIR="\"$(LOCALSTATEDIR)\""
+include config.mk
+
+all: seedrng seedrng.8
+
+seedrng.8:
+	pod2man -r "${NAME} ${VERSION}" -c ' ' -n seedrng -s 8 \
+		seedrng.8.pod > $@
 
 seedrng: seedrng.c
 
-install: seedrng
-	install -v -d "$(DESTDIR)$(SBINDIR)" && install -v -m 0755 seedrng "$(DESTDIR)$(SBINDIR)/seedrng"
+install: all
+	mkdir -p        ${DESTDIR}${PREFIX}/sbin
+	mkdir -p        ${DESTDIR}${MANPREFIX}/man8
+	cp -f seedrng   ${DESTDIR}${PREFIX}/sbin/
+	cp -f seedrng.8 ${DESTDIR}${MANPREFIX}/man8/
+	chmod 0755      ${DESTDIR}${PREFIX}/sbin/seedrng
+	chmod 0644      ${DESTDIR}${MANPREFIX}/man8/seedrng.8
+
+uninstall:
+	rm -f ${DESTDIR}${PREFIX}/sbin/seedrng
+	rm -f ${DESTDIR}${MANPREFIX}/man8/seedrng.8
 
 clean:
-	rm -f seedrng
+	rm -f seedrng seedrng.8
+	rm -f ${DIST}.tar.gz
 
-.PHONY: clean
+dist: clean
+	git archive --format=tar.gz -o ${DIST}.tar.gz --prefix=${DIST}/ HEAD
+
+.PHONY: all install uninstall clean dist
