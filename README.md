@@ -1,72 +1,59 @@
-## SeedRNG &mdash; `seedrng(8)`
-##### by [Jason A. Donenfeld](mailto:Jason@zx2c4.com)
+OVERVIEW
+--------
+This directory contains seedrng, a simple program for seeding the
+Linux kernel random number generator from seed files.
 
-SeedRNG is a simple program made for seeding the Linux kernel random number
-generator from seed files. The program takes no arguments, must be run as root,
-and always attempts to do something useful.
+This distribution is a fork of
+[Jason A. Donenfeld](mailto:Jason@zx2c4.com)'s seedrng as of commit
+f68fee4 (Wed Apr 20 02:43:45 2022 +0200) with the following
+differences:
+- add seedrng.8.pod manual page
+- move paths from seedrng.c to pathnames.h
+- adjust build files to suckless style
 
-This program is useful in light of the fact that the Linux kernel RNG cannot be
-initialized from shell scripts, and new seeds cannot be safely generated from
-boot time shell scripts either.
+See git log for complete/further differences.
 
-It should be run once at init time and once at shutdown time. It can be run at
-other times without detriment as well. Whenever it is run, it writes existing
-seed files into the RNG pool, and then creates a new seed file. If the RNG is
-initialized at the time of creating a new seed file, then that new seed file is
-marked as "creditable", which means it can be used to initialize the RNG.
-Otherwise, it is marked as "non-creditable", in which case it is still used to
-seed the RNG's pool, but will not initialize the RNG.
+The original sources can be downloaded from:
+1. git://git.zx2c4.com/seedrng    (git)
+2. https://git.zx2c4.com/seedrng  (web)
 
-In order to ensure that entropy only ever stays the same or increases from one
-seed file to the next, old seed values are hashed together with new seed values
-when writing new seed files:
 
-```
-new_seed = new_seed[:-32] || HASH(fixed_prefix || real_time || boot_time || old_seed_len || old_seed || new_seed_len || new_seed)
-```
+REQUIREMENTS
+------------
+**Build time**:
+- c99 compiler
+- POSIX sh(1p), make(1p) and "mandatory utilities"
+- pod2man(1pm) to build man page
 
-The seed is stored in `LOCALSTATEDIR/seedrng/`, which can be adjusted at
-compile time. If the `SEEDRNG_SKIP_CREDIT` environment variable is set to `1`,
-`true`, `yes`, or `y`, then seeds never credit the RNG, even if the seed file
-is creditable.
 
-Being a single C file, `seedrng.c`, SeedRNG is meant to be copy and pasted
-verbatim into various minimal init system projects and tweaked as needed.
-**Please do not package this repo as a standalone program**: it is intended as
-utility code meant to be imported into existing projects instead.
+INSTALL
+-------
+SeedRNG is meant to be used by init system projects.
+**Please do not use SeedRNG as a standalone program**.
 
-### Building &amp; Installing
+The shell commands `make && make install` should build and install
+this package.  See `config.mk` file for configuration parameters, and
+`pathnames.h` for absolute filenames that SeedRNG wants for various
+defaults.
 
-```
-$ make
-$ sudo make install
-```
 
-In addition to the usual compiler environment variables (`CFLAGS`, etc), the
-following environment variable is respected during compilation:
-
-  * `LOCALSTATEDIR`        default: `/var/lib`
-
-The following environment variables are respected during installation:
-
-  * `PREFIX`               default: `/usr`
-  * `DESTDIR`              default:
-  * `SBINDIR`              default: `$(PREFIX)/sbin`
-
-### Usage
-
-```
+USAGE
+-----
+```sh
 # seedrng
 ```
 
-However, this invocation should generally come from init and shutdown scripts.
+However, this invocation should generally come from init and shutdown
+scripts.
 
-### License
 
-This program is licensed under any one of the the following licenses, so that it can be incorporated into other software projects as needed:
+LICENSE
+-------
+This program is licensed under any one of the following licenses, so
+that it can be incorporated into other software projects as needed:
 
-    - GPL-2.0
-    - Apache-2.0
-    - MIT
-    - BSD-1-Clause
-    - CC0-1.0
+- GPL-2.0
+- Apache-2.0
+- MIT
+- BSD-1-Clause
+- CC0-1.0
