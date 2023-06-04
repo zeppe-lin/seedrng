@@ -1,0 +1,79 @@
+=pod
+
+=encoding UTF-8
+
+=head1 NAME
+
+seedrng - seed the Linux kernel random number generator from seed files
+
+=head1 SYNOPSIS
+
+B<seedrng>
+
+=head1 DESCRIPTION
+
+B<seedrng> is a simple program for seeding the Linux kernel random
+number generator from seed files.  The program takes no arguments,
+must be run as root, and always attempts to do something useful.
+
+This program is useful in light of the fact that the Linux kernel RNG
+cannot be initialized from shell scripts, and new seeds cannot be
+safely generated from boot time shell scripts either.
+
+It should be run once at init time and once at shutdown time.  It can
+be run at other times without detriment as well.  Whenever it us run,
+it writes existing seed files into the RNG pool, and then creates a
+new seed file.  If the RNG is initialized at the time of creating a
+new seed file, then that new seed file is marked as "creditable",
+which means it can be used to initialized the RNG.  Otherwise, it is
+marked as "non-creditable", in which case it is still used to seed the
+RNG's pool, but will not initialize the RNG.
+
+In order to ensure that entropy only ever stays the same or increases
+from one seed file to the next, old seed values are hashed together
+with new seed values when writing new seed files:
+
+  new_seed =    new_seed[:-32]
+             || HASH(   fixed_prefix
+                     || real_time
+                     || boot_time
+                     || old_seed_len
+                     || old_seed
+                     || new_seed_len
+                     || new_seed
+                     )
+
+=head1 ENVIRONMENT
+
+=over
+
+=item I<SEEDRNG_SKIP_CREDIT>
+
+If the I<SEEDRNG_SKIP_CREDIT> environment variable is set to C<1>,
+C<true>, C<yes>, or C<y>, then seeds never credit the RNG, even if the
+seed file is creditable.
+
+=back
+
+=head1 FILES
+
+=over
+
+=item F</var/lib/seedrng>
+
+The directory where the seed files are stored.
+
+=item F</var/lib/seedrng/seed.credit>
+
+"Creditable" seed file.
+
+=item F</var/lib/seedrng/seed.no-credit>
+
+"Non-creditable" seed file.
+
+=back
+
+=cut
+
+# vim:sw=2:ts=2:sts=2:et:cc=72:tw=70
+# End of file.
