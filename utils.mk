@@ -24,7 +24,7 @@ cppcheck:
 
 flawfinder:
 	@echo "=======> Check for potential security flaws"
-	@flawfinder -D --quiet .
+	@flawfinder --quiet -D .
 
 longlines:
 	@echo "=======> Check for long lines"
