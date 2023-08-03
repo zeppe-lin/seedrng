@@ -1,4 +1,13 @@
+# build files and artefacts
 seedrng
 seedrng.8
-*.swp
+
+# vim undo and swap files
 .*.un~
+*.swp
+
+# backup files
+*.bak
+
+# dist tarballs
+*.tar.gz
