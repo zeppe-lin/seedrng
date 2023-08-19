@@ -4,6 +4,9 @@ include config.mk
 
 all: seedrng seedrng.8
 
+.c.o:
+	${CC} -c ${CFLAGS} ${CPPFLAGS} $<
+
 seedrng.8:
 	pod2man -r "${NAME} ${VERSION}" -c ' ' -n seedrng -s 8 \
 		seedrng.8.pod > $@
