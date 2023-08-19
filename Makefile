@@ -4,11 +4,6 @@ include config.mk
 
 all: seedrng
 
-.c.o:
-	${CC} -c ${CFLAGS} ${CPPFLAGS} $<
-
-seedrng: seedrng.c
-
 install: all
 	mkdir -p        ${DESTDIR}${PREFIX}/sbin
 	mkdir -p        ${DESTDIR}${MANPREFIX}/man8
@@ -23,7 +18,7 @@ uninstall:
 	rm -f ${DESTDIR}${MANPREFIX}/man8/seedrng.8
 
 clean:
-	rm -f seedrng
+	rm -f seedrng seedrng.o
 	rm -f ${DIST}.tar.gz
 
 dist: clean
