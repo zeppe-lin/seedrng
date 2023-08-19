@@ -23,6 +23,7 @@ REQUIREMENTS
 **Build time**:
 - c99 compiler
 - POSIX sh(1p), make(1p) and "mandatory utilities"
+- Linux kernel headers
 
 
 INSTALL
