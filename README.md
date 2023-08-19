@@ -9,7 +9,7 @@ f68fee4 (Wed Apr 20 02:43:45 2022 +0200) with the following
 differences:
 - add seedrng.8 manual page
 - move paths from seedrng.c to pathnames.h
-- adjust build to suckless style
+- suckless style
 
 See git log for complete/further differences.
 
