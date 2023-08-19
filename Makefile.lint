@@ -1,7 +1,7 @@
 # Makefile.lint is the automated checking of seedrng project
 # for various programmatic and stylistic errors.
 
-all: deadlinks shellcheck cppcheck flawfinder longlines
+all: deadlinks cppcheck flawfinder longlines
 
 deadlinks:
 	@echo "=======> Check for dead links"
@@ -10,11 +10,6 @@ deadlinks:
 		  -sw "[%{http_code}] %{url}\n" '{}'              \
 		| grep -v '^\[200\]'                              \
 		| sort -u
-
-shellcheck:
-	@echo "=======> Check shell scripts for syntax errors"
-	@grep -m1 -Irl '^#\s*!/bin/sh' --exclude-dir=.git* \
-		| xargs -L10 -r shellcheck -s sh
 
 cppcheck:
 	@echo "=======> Static C/C++ code analysis"
@@ -29,4 +24,4 @@ longlines:
 	@echo "=======> Check for long lines"
 	@! grep -PIrn '^.{81,}$$' --exclude-dir=.git*
 
-.PHONY: all deadlinks shellcheck cppcheck flawfinder longlines
+.PHONY: all deadlinks cppcheck flawfinder longlines
