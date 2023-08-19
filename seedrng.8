@@ -1,0 +1,69 @@
+.Dd August 19, 2023
+.Dt SEEDRNG 8
+.Os seedrng @VERSION@
+.Sh NAME
+.Nm seedrng
+.Nd seed the Linux kernel random number generator from seed files
+.Sh SYNOPSIS
+.Nm
+.Sh DESCRIPTION
+.Nm
+is a simple program for seeding the Linux kernel random number
+generator from seed files.  The program takes no arguments,
+must be run as root, and always attempts to do something useful.
+.Pp
+This program is useful in light of the fact that the Linux kernel RNG
+cannot be initialized from shell scripts, and new seeds cannot be
+safely generated from boot time shell scripts either.
+.Pp
+It should be run once at init time and once at shutdown time.  It can
+be run at other times without detriment as well.  Whenever it us run,
+it writes existing seed files into the RNG pool, and then creates a
+new seed file.  If the RNG is initialized at the time of creating a
+new seed file, then that new seed file is marked as "creditable",
+which means it can be used to initialized the RNG.  Otherwise, it is
+marked as "non-creditable", in which case it is still used to seed the
+RNG's pool, but will not initialize the RNG.
+.Pp
+In order to ensure that entropy only ever stays the same or increases
+from one seed file to the next, old seed values are hashed together
+with new seed values when writing new seed files:
+.Bd -literal -offset indent
+  new_seed =    new_seed[:-32]
+             || HASH(   fixed_prefix
+                     || real_time
+                     || boot_time
+                     || old_seed_len
+                     || old_seed
+                     || new_seed_len
+                     || new_seed
+                     )
+.Ed
+.Sh ENVIRONMENT
+The following environment variables affect the execution of
+.Nm :
+.Bl -tag
+.It Ev SEEDRNG_SKIP_CREDIT
+If the environment variable
+.Ev SEEDRNG_SKIP_CREDIT
+is set to
+.Ql 1 ,
+.Dq \&true ,
+.Dq \&yes ,
+or
+.Ql y ,
+then seeds never credit the RNG, even if the seed file is creditable.
+.El
+.Sh FILES
+.Bl -tag
+.It Pa /var/lib/seedrng
+The directory where the seed files are stored.
+.It Pa /var/lib/seedrng/seed.credit
+"Creditable" seed file.
+.It Pa /var/lib/seedrng/seed.no-credit
+"Non-creditable" seed file.
+.El
+.Sh AUTHORS
+.Nm
+was written by
+.An Jason A. Donenfeld Aq Mt Jason@zx2c4.com .
