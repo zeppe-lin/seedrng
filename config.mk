@@ -11,7 +11,3 @@ LOCALSTATEDIR = /var/lib
 # flags
 CFLAGS        = -pedantic -Wall -Wextra -DLOCALSTATEDIR=\"${LOCALSTATEDIR}\"
 LDFLAGS       = -static
-
-# compiler and linker
-CC            = cc
-LD            = ${CC}
