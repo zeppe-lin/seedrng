@@ -3,13 +3,14 @@ OVERVIEW
 This directory contains seedrng, a simple program for seeding the
 Linux kernel random number generator from seed files.
 
-This distribution is a fork of
-[Jason A. Donenfeld](mailto:Jason@zx2c4.com)'s seedrng as of commit
-f68fee4 (Wed Apr 20 02:43:45 2022 +0200) with the following
+This distribution is a fork of [Jason A. Donenfeld][1]'s seedrng as of
+commit f68fee4 (Wed Apr 20 02:43:45 2022 +0200) with the following
 differences:
 - add seedrng.8 manual page
-- move paths from seedrng.c to pathnames.h
+- move paths declaration from seedrng.c to pathnames.h
 - suckless style build
+
+[1]: mailto:Jason@zx2c4.com
 
 See git log for complete/further differences.
 
@@ -21,7 +22,7 @@ The original sources can be downloaded from:
 REQUIREMENTS
 ------------
 **Build time**:
-- c99 compiler
+- C99 compiler
 - POSIX sh(1p), make(1p) and "mandatory utilities"
 - Linux kernel headers
 
