@@ -10,21 +10,23 @@
 .Sh DESCRIPTION
 .Nm
 is a simple program for seeding the Linux kernel random number
-generator from seed files.  The program takes no arguments,
-must be run as root, and always attempts to do something useful.
+generator from seed files.
+The program takes no arguments, must be run as root, and always
+attempts to do something useful.
 .Pp
 This program is useful in light of the fact that the Linux kernel RNG
 cannot be initialized from shell scripts, and new seeds cannot be
 safely generated from boot time shell scripts either.
 .Pp
-It should be run once at init time and once at shutdown time.  It can
-be run at other times without detriment as well.  Whenever it us run,
-it writes existing seed files into the RNG pool, and then creates a
-new seed file.  If the RNG is initialized at the time of creating a
-new seed file, then that new seed file is marked as "creditable",
-which means it can be used to initialized the RNG.  Otherwise, it is
-marked as "non-creditable", in which case it is still used to seed the
-RNG's pool, but will not initialize the RNG.
+It should be run once at init time and once at shutdown time.
+It can be run at other times without detriment as well.
+Whenever it us run, it writes existing seed files into the RNG pool,
+and then creates a new seed file.
+If the RNG is initialized at the time of creating a new seed file,
+then that new seed file is marked as "creditable", which means it can
+be used to initialized the RNG.
+Otherwise, it is marked as "non-creditable", in which case it is still
+used to seed the RNG's pool, but will not initialize the RNG.
 .Pp
 In order to ensure that entropy only ever stays the same or increases
 from one seed file to the next, old seed values are hashed together
@@ -43,7 +45,7 @@ with new seed values when writing new seed files:
 .Sh ENVIRONMENT
 The following environment variables affect the execution of
 .Nm :
-.Bl -tag
+.Bl -tag -width Ds
 .It Ev SEEDRNG_SKIP_CREDIT
 If the environment variable
 .Ev SEEDRNG_SKIP_CREDIT
@@ -56,7 +58,7 @@ or
 then seeds never credit the RNG, even if the seed file is creditable.
 .El
 .Sh FILES
-.Bl -tag
+.Bl -tag -width Ds
 .It Pa /var/lib/seedrng
 The directory where the seed files are stored.
 .It Pa /var/lib/seedrng/seed.credit
@@ -73,3 +75,5 @@ was written by
 .Pp
 This manual page was written by
 .An Alexandr Savca Aq Mt alexandr.savca89@gmail.com .
+.\" vim: cc=72 tw=70
+.\" End of file.
