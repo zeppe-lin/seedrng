@@ -2,11 +2,14 @@
 .Dd August 19, 2023
 .Dt SEEDRNG 8
 .Os seedrng @VERSION@
+.\" ==================================================================
 .Sh NAME
 .Nm seedrng
 .Nd seed the Linux kernel random number generator from seed files
+.\" ==================================================================
 .Sh SYNOPSIS
 .Nm
+.\" ==================================================================
 .Sh DESCRIPTION
 .Nm
 is a simple program for seeding the Linux kernel random number
@@ -42,6 +45,7 @@ with new seed values when writing new seed files:
                      || new_seed
                      )
 .Ed
+.\" ==================================================================
 .Sh ENVIRONMENT
 The following environment variables affect the execution of
 .Nm :
@@ -57,6 +61,7 @@ or
 .Ql y ,
 then seeds never credit the RNG, even if the seed file is creditable.
 .El
+.\" ==================================================================
 .Sh FILES
 .Bl -tag -width Ds
 .It Pa /var/lib/seedrng
@@ -68,6 +73,7 @@ seed file.
 .Dq Non-creditable
 seed file.
 .El
+.\" ==================================================================
 .Sh AUTHORS
 .Nm
 was written by
