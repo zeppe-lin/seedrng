@@ -8,8 +8,7 @@ install: all
 	mkdir -p ${DESTDIR}${PREFIX}/sbin
 	mkdir -p ${DESTDIR}${MANPREFIX}/man8
 	cp -f seedrng ${DESTDIR}${PREFIX}/sbin/
-	sed "s/^\.Os/.Os ${NAME} ${VERSION}/" seedrng.8 \
-		> ${DESTDIR}${MANPREFIX}/man8/seedrng.8
+	cp -f seedrng.8 ${DESTDIR}${MANPREFIX}/man8/
 	chmod 0755 ${DESTDIR}${PREFIX}/sbin/seedrng
 	chmod 0644 ${DESTDIR}${MANPREFIX}/man8/seedrng.8
 
