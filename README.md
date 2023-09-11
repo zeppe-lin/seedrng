@@ -6,7 +6,7 @@ Linux kernel random number generator from seed files.
 This distribution is a fork of [Jason A. Donenfeld][1]'s seedrng as of
 commit f68fee4 (Wed Apr 20 02:43:45 2022 +0200) with the following
 differences:
-- add seedrng.8 manual page
+- add seedrng.8 manual page in mdoc(7) format
 - move paths declaration from seedrng.c to pathnames.h
 - suckless style build
 
