@@ -1,6 +1,6 @@
 # project metadata
 NAME          = seedrng
-VERSION       = 0.2
+VERSION       = 0.2.1
 DIST          = ${NAME}-${VERSION}
 
 # paths
