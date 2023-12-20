@@ -30,9 +30,8 @@ spellcheck:
 	@mandoc -T html seedrng.8 | hunspell -H -l - | sort -u
 
 mancheck:
-	@echo "=======> Check man pages for syntax errors"
-	@find . -not -path '*/.*' -type f -name '*.[1-9]' \
-		-exec mandoc -T lint {} +
+	@echo "=======> Check man page for syntax errors"
+	@mandoc -T lint seedrng.8
 
 cppcheck:
 	@echo "=======> Static C/C++ code analysis"
