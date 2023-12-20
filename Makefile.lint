@@ -25,6 +25,10 @@ deadlinks:
 	@echo "=======> Check for dead links"
 	@$(CURMAKE) curllinks | grep -v '^\[200\]' | sort -u
 
+spellcheck:
+	@echo "=======> Check man page for spelling errors"
+	@mandoc -T html seedrng.8 | hunspell -H -l - | sort -u
+
 mancheck:
 	@echo "=======> Check man pages for syntax errors"
 	@find . -not -path '*/.*' -type f -name '*.[1-9]' \
