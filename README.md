@@ -6,10 +6,9 @@ random number generator from seed files.
 
 This distribution is a fork of [Jason A. Donenfeld][1]'s seedrng as of commit
 f68fee4 (Wed Apr 20 02:43:45 2022 +0200) with the following differences:
-
-- add seedrng.8 manual page in mdoc(7) format
-- move paths declaration from seedrng.c to pathnames.h
-- suckless style build
+* add seedrng.8 manual page in mdoc(7) format
+* move paths declaration from seedrng.c to pathnames.h
+* suckless style build
 
 [1]: mailto:Jason@zx2c4.com
 
@@ -25,9 +24,9 @@ REQUIREMENTS
 
 Build time
 ----------
-- C99 compiler
-- POSIX sh(1p), make(1p) and "mandatory utilities"
-- Linux kernel headers
+* C99 compiler
+* POSIX sh(1p), make(1p) and "mandatory utilities"
+* Linux kernel headers
 
 
 INSTALL
@@ -58,9 +57,8 @@ LICENSE
 
 This program is licensed under any one of the following licenses, so that it
 can be incorporated into other software projects as needed:
-
-- GPL-2.0
-- Apache-2.0
-- MIT
-- BSD-1-Clause
-- CC0-1.0
+* GPL-2.0
+* Apache-2.0
+* MIT
+* BSD-1-Clause
+* CC0-1.0
