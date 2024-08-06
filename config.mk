@@ -10,5 +10,5 @@ LOCALSTATEDIR = /var/lib
 
 # flags
 CPPFLAGS      = -D_DEFAULT_SOURCE -DLOCALSTATEDIR=\"${LOCALSTATEDIR}\"
-CFLAGS        = -pedantic -Wall -Wextra ${CPPFLAGS}
+CFLAGS        = -pedantic -Wall -Wextra -Wformat ${CPPFLAGS}
 LDFLAGS       = -static
