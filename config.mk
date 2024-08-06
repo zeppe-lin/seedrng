@@ -9,6 +9,6 @@ MANPREFIX     = ${PREFIX}/share/man
 LOCALSTATEDIR = /var/lib
 
 # flags
-CFLAGS        = -pedantic -Wall -Wextra \
-		-D_DEFAULT_SOURCE -DLOCALSTATEDIR=\"${LOCALSTATEDIR}\"
+CPPFLAGS      = -D_DEFAULT_SOURCE -DLOCALSTATEDIR=\"${LOCALSTATEDIR}\"
+CFLAGS        = -pedantic -Wall -Wextra ${CPPFLAGS}
 LDFLAGS       = -static
