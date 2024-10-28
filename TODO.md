@@ -5,6 +5,6 @@ TODO seedrng
 No milestone
 ------------
 
-  - [ ] Add GNU-style options and usage:
+- [ ] Add GNU-style options and usage:
   Support -v/--version and -h/--help cmdline params.
   Use `getopt_long(3)`.
