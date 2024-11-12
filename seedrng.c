@@ -25,8 +25,8 @@
 
 enum blake2s_lengths {
 	BLAKE2S_BLOCK_LEN = 64,
-	BLAKE2S_HASH_LEN = 32,
-	BLAKE2S_KEY_LEN = 32
+	BLAKE2S_HASH_LEN  = 32,
+	BLAKE2S_KEY_LEN   = 32
 };
 
 enum seedrng_lengths {
@@ -44,12 +44,15 @@ struct blake2s_state {
 };
 
 #define le32_to_cpup(a) le32toh(*(a))
+
 #define cpu_to_le32(a) htole32(a)
+
 #ifndef ARRAY_SIZE
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+# define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 #endif
+
 #ifndef DIV_ROUND_UP
-#define DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
+# define DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
 #endif
 
 static inline void cpu_to_le32_array(uint32_t *buf, unsigned int words)
@@ -138,26 +141,26 @@ static void blake2s_compress(struct blake2s_state *state, const uint8_t *block, 
 		v[14] = blake2s_iv[6] ^ state->f[0];
 		v[15] = blake2s_iv[7] ^ state->f[1];
 
-#define G(r, i, a, b, c, d) do { \
-	a += b + m[blake2s_sigma[r][2 * i + 0]]; \
-	d = ror32(d ^ a, 16); \
-	c += d; \
-	b = ror32(b ^ c, 12); \
-	a += b + m[blake2s_sigma[r][2 * i + 1]]; \
-	d = ror32(d ^ a, 8); \
-	c += d; \
-	b = ror32(b ^ c, 7); \
+#define G(r, i, a, b, c, d) do {                  \
+	a += b + m[blake2s_sigma[r][2 * i + 0]];  \
+	d = ror32(d ^ a, 16);                     \
+	c += d;                                   \
+	b = ror32(b ^ c, 12);                     \
+	a += b + m[blake2s_sigma[r][2 * i + 1]];  \
+	d = ror32(d ^ a, 8);                      \
+	c += d;                                   \
+	b = ror32(b ^ c, 7);                      \
 } while (0)
 
-#define ROUND(r) do { \
-	G(r, 0, v[0], v[ 4], v[ 8], v[12]); \
-	G(r, 1, v[1], v[ 5], v[ 9], v[13]); \
-	G(r, 2, v[2], v[ 6], v[10], v[14]); \
-	G(r, 3, v[3], v[ 7], v[11], v[15]); \
-	G(r, 4, v[0], v[ 5], v[10], v[15]); \
-	G(r, 5, v[1], v[ 6], v[11], v[12]); \
-	G(r, 6, v[2], v[ 7], v[ 8], v[13]); \
-	G(r, 7, v[3], v[ 4], v[ 9], v[14]); \
+#define ROUND(r) do {                        \
+	G(r, 0, v[0], v[ 4], v[ 8], v[12]);  \
+	G(r, 1, v[1], v[ 5], v[ 9], v[13]);  \
+	G(r, 2, v[2], v[ 6], v[10], v[14]);  \
+	G(r, 3, v[3], v[ 7], v[11], v[15]);  \
+	G(r, 4, v[0], v[ 5], v[10], v[15]);  \
+	G(r, 5, v[1], v[ 6], v[11], v[12]);  \
+	G(r, 6, v[2], v[ 7], v[ 8], v[13]);  \
+	G(r, 7, v[3], v[ 4], v[ 9], v[14]);  \
 } while (0)
 		ROUND(0);
 		ROUND(1);
@@ -249,6 +252,7 @@ static ssize_t read_full(int fd, void *buf, size_t count)
 		p += ret;
 		count -= ret;
 	} while (count);
+
 	return total;
 }
 
@@ -267,6 +271,7 @@ static ssize_t write_full(int fd, const void *buf, size_t count)
 		p += ret;
 		count -= ret;
 	} while (count);
+
 	return total;
 }
 
@@ -287,6 +292,7 @@ static size_t determine_optimal_seed_len(void)
 		ret = MIN_SEED_LEN;
 	else if (ret > MAX_SEED_LEN)
 		ret = MAX_SEED_LEN;
+
 	return ret;
 }
 
