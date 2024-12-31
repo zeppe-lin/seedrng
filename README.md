@@ -46,8 +46,9 @@ for absolute filenames that SeedRNG wants for various defaults.
 USAGE
 =====
 
+**As root**:
 ```sh
-# seedrng
+seedrng
 ```
 
 However, this invocation should generally come from init and shutdown
