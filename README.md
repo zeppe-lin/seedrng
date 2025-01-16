@@ -1,7 +1,7 @@
 OVERVIEW
 ========
 
-This directory contains seedrng, a simple program for seeding the
+This repository contains seedrng, a simple program for seeding the
 Linux kernel random number generator from seed files.
 
 This distribution is a fork of [Jason A. Donenfeld][1]'s seedrng as of
