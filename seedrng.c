@@ -232,6 +232,7 @@ static ssize_t getrandom_full(void *buf, size_t count, unsigned int flags)
 		p += ret;
 		count -= ret;
 	} while (count);
+
 	return total;
 }
 
@@ -390,7 +391,10 @@ static int seed_from_file_if_exists(const char *filename, int dfd, bool credit, 
 	blake2s_update(hash, &seed_len, sizeof(seed_len));
 	blake2s_update(hash, seed, seed_len);
 
-	printf("Seeding %zd bits %s crediting\n", seed_len * 8, credit ? "and" : "without");
+	printf("Seeding %zd bits %s crediting\n",
+		seed_len * 8,
+		credit ? "and" : "without");
+
 	if (seed_rng(seed, seed_len, credit) < 0) {
 		ret = -errno;
 		perror("Unable to seed");
@@ -463,7 +467,10 @@ int main(int argc __attribute__((unused)), char *argv[] __attribute__((unused)))
 	blake2s_update(&hash, new_seed, new_seed_len);
 	blake2s_final(&hash, new_seed + new_seed_len - BLAKE2S_HASH_LEN);
 
-	printf("Saving %zu bits of %s seed for next boot\n", new_seed_len * 8, new_seed_creditable ? "creditable" : "non-creditable");
+	printf("Saving %zu bits of %s seed for next boot\n",
+		new_seed_len * 8,
+		new_seed_creditable ? "creditable" : "non-creditable");
+
 	fd = openat(dfd, NON_CREDITABLE_SEED, O_WRONLY | O_CREAT | O_TRUNC, 0400);
 	if (fd < 0) {
 		perror("Unable to open seed file for writing");
