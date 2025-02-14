@@ -43,8 +43,11 @@ See `config.mk` file for configuration parameters, and `pathnames.h`
 for absolute filenames that SeedRNG wants for various defaults.
 
 
-USAGE
-=====
+DOCUMENTATION
+=============
+
+Basic usage
+-----------
 
 **As root**:
 ```sh
@@ -53,6 +56,12 @@ seedrng
 
 However, this invocation should generally come from init and shutdown
 scripts.
+
+Online documentation
+--------------------
+
+Manual pages:
+- [seedrng.8](https://zeppe-lin.github.io/seedrng.8.html)
 
 
 LICENSE
