@@ -5,7 +5,7 @@ include config.mk
 all: seedrng seedrng.8
 
 seedrng.8: seedrng.8.scdoc
-	scdoc < $^ > $@
+	scdoc < seedrng.8.scdoc > $@
 
 install: all
 	mkdir -p ${DESTDIR}${PREFIX}/sbin
