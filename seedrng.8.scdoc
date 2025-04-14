@@ -58,10 +58,6 @@ _/var/lib/seedrng/seed.no-credit_
 
 *0* on success, and *>0* if an error occurs.
 
-# SEE ALSO
-
-https://github.com/zeppe%2Dlin/seedrng%23technical%2Ddetails
-
 # AUTHORS
 
 The original *seedrng* program was written by Jason A. Donenfeld
