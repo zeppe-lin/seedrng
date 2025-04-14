@@ -21,7 +21,6 @@ uninstall:
 
 clean:
 	rm -f seedrng seedrng.8
-	rm -f ${DIST}.tar.gz
 
 release:
 	git tag -a v${VERSION} -m v${VERSION}
