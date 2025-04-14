@@ -1,6 +1,19 @@
-// SPDX-License-Identifier: (GPL-2.0 OR Apache-2.0 OR MIT OR BSD-1-Clause OR CC0-1.0)
 /*
- * Copyright (C) 2022 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved.
+ * SPDX-License-Identifier: (GPL-2.0 OR Apache-2.0 OR MIT OR BSD-1-Clause OR CC0-1.0)
+ */
+
+/*!
+ * \file seedrng.c
+ * \brief Seeds the Linux kernel random number generator from seed files.
+ *
+ * This program reads existing seed files, mixes their entropy into the
+ * kernel's random number generator, and then saves a new seed for future boots.
+ * It uses BLAKE2s for hashing to ensure entropy never decreases.
+ *
+ * \author Jason A. Donenfeld <Jason@zx2c4.com>
+ * \author Alexandr Savca <alexandr.savca89@gmail.com> (Porting and Packaging)
+ *
+ * \copyright (C) 2022 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved.
  */
 
 #include <linux/random.h>
@@ -23,38 +36,60 @@
 
 #include "pathnames.h"
 
+/*! \brief Lengths used by the BLAKE2s hash function. */
 enum blake2s_lengths {
+	/*! \brief Block length in bytes. */
 	BLAKE2S_BLOCK_LEN = 64,
+	/*! \brief Hash output length in bytes. */
 	BLAKE2S_HASH_LEN  = 32,
+	/*! \brief Key length in bytes (not used in this program). */
 	BLAKE2S_KEY_LEN   = 32
 };
 
+/*! \brief Lengths specific to the seedrng program. */
 enum seedrng_lengths {
+	/*! \brief Maximum allowed seed file length in bytes. */
 	MAX_SEED_LEN = 512,
+	/*! \brief Minimum allowed seed file length in bytes (equal to the BLAKE2s hash length). */
 	MIN_SEED_LEN = BLAKE2S_HASH_LEN
 };
 
+/*! \brief Structure to hold the state of the BLAKE2s hash function. */
 struct blake2s_state {
-	uint32_t h[8];
-	uint32_t t[2];
-	uint32_t f[2];
-	uint8_t buf[BLAKE2S_BLOCK_LEN];
-	unsigned int buflen;
-	unsigned int outlen;
+	uint32_t h[8]; /*!< Holds the hash state. */
+	uint32_t t[2]; /*!< Holds the message counter. */
+	uint32_t f[2]; /*!< Holds the finalization flags. */
+	uint8_t buf[BLAKE2S_BLOCK_LEN]; /*!< Internal buffer for partial blocks. */
+	unsigned int buflen; /*!< Number of bytes in the internal buffer. */
+	unsigned int outlen; /*!< Desired output length of the hash. */
 };
 
+/*! \brief Converts a little-endian 32-bit value to CPU byte order. */
 #define le32_to_cpup(a) le32toh(*(a))
 
+/*! \brief Converts a 32-bit value in CPU byte order to little-endian. */
 #define cpu_to_le32(a) htole32(a)
 
 #ifndef ARRAY_SIZE
+/*! \brief Calculates the number of elements in a static array. */
 # define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 #endif
 
 #ifndef DIV_ROUND_UP
+/*! \brief Divides two numbers and rounds the result up to the nearest integer. */
 # define DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
 #endif
 
+/**
+ * @brief Converts an array of 32-bit unsigned integers from CPU endianness to little-endian.
+ *
+ * This function iterates through the provided array and converts the byte order
+ * of each 32-bit integer to little-endian using the `cpu_to_le32` macro.
+ *
+ * @param buf A pointer to the first element of the array of 32-bit unsigned integers.
+ * The conversion is done in-place.
+ * @param words The number of 32-bit words in the array.
+ */
 static inline void cpu_to_le32_array(uint32_t *buf, unsigned int words)
 {
 	while (words--) {
@@ -63,6 +98,17 @@ static inline void cpu_to_le32_array(uint32_t *buf, unsigned int words)
 	}
 }
 
+/**
+ * @brief Converts an array of 32-bit unsigned integers from little-endian to CPU endianness.
+ *
+ * This function iterates through the provided array and converts the byte order
+ * of each 32-bit integer from little-endian to the CPU's native endianness
+ * using the `le32_to_cpup` macro.
+ *
+ * @param buf A pointer to the first element of the array of 32-bit unsigned integers.
+ * The conversion is done in-place.
+ * @param words The number of 32-bit words in the array.
+ */
 static inline void le32_to_cpu_array(uint32_t *buf, unsigned int words)
 {
 	while (words--) {
@@ -71,16 +117,42 @@ static inline void le32_to_cpu_array(uint32_t *buf, unsigned int words)
 	}
 }
 
+/**
+ * @brief Performs a 32-bit right bitwise rotation.
+ *
+ * This function rotates the bits of a 32-bit unsigned integer to the right
+ * by the specified number of positions. The shift amount is masked to ensure
+ * it's within the valid range for a 32-bit word (0-31).
+ *
+ * @param word The 32-bit unsigned integer to rotate.
+ * @param shift The number of bit positions to rotate to the right.
+ * @return The result of the right bitwise rotation.
+ */
 static inline uint32_t ror32(uint32_t word, unsigned int shift)
 {
 	return (word >> (shift & 31)) | (word << ((-shift) & 31));
 }
 
+/**
+ * @brief The initialization vector (IV) for the BLAKE2s hash function.
+ *
+ * This constant array contains the eight 32-bit unsigned integer values
+ * that are used to initialize the internal state of the BLAKE2s hashing
+ * algorithm. These values are part of the BLAKE2s specification.
+ */
 static const uint32_t blake2s_iv[8] = {
 	0x6A09E667UL, 0xBB67AE85UL, 0x3C6EF372UL, 0xA54FF53AUL,
 	0x510E527FUL, 0x9B05688CUL, 0x1F83D9ABUL, 0x5BE0CD19UL
 };
 
+/**
+ * @brief The sigma permutation for the BLAKE2s hash function.
+ *
+ * This constant 2-dimensional array defines the order in which message words
+ * are accessed during each of the 10 rounds of the BLAKE2s compression function.
+ * Each row represents a round, and the 16 values in each row are a permutation
+ * of the indices 0 to 15, indicating the order of message word selection.
+ */
 static const uint8_t blake2s_sigma[10][16] = {
 	{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
 	{ 14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3 },
@@ -94,17 +166,52 @@ static const uint8_t blake2s_sigma[10][16] = {
 	{ 10, 2, 8, 4, 7, 6, 1, 5, 15, 11, 9, 14, 3, 12, 13, 0 },
 };
 
+/**
+ * @brief Sets the last block flag in the BLAKE2s state.
+ *
+ * This function sets a flag in the BLAKE2s state structure to indicate
+ * that the current block being processed is the last block of the input data.
+ * This is typically done during the finalization phase of the hashing process.
+ *
+ * @param state A pointer to the BLAKE2s state structure.
+ */
 static void blake2s_set_lastblock(struct blake2s_state *state)
 {
 	state->f[0] = -1;
 }
 
+/**
+ * @brief Increments the 64-bit counter in the BLAKE2s state.
+ *
+ * This function increments the 64-bit counter maintained within the BLAKE2s
+ * state structure. The counter is represented by two 32-bit unsigned integers:
+ * `state->t[0]` (lower 32 bits) and `state->t[1]` (upper 32 bits). The function
+ * adds the given increment to the lower part and handles any potential carry
+ * to the upper part. This counter is used by the BLAKE2s algorithm to keep
+ * track of the number of input bytes processed.
+ *
+ * @param state A pointer to the BLAKE2s state structure.
+ * @param inc The 32-bit unsigned integer value to increment the counter by.
+ */
 static void blake2s_increment_counter(struct blake2s_state *state, const uint32_t inc)
 {
 	state->t[0] += inc;
 	state->t[1] += (state->t[0] < inc);
 }
 
+/**
+ * @brief Initializes the BLAKE2s state structure with a parameter.
+ *
+ * This function initializes the internal state of the BLAKE2s hash function.
+ * It first sets the entire state structure to zero. Then, it copies the
+ * standard BLAKE2s initialization vector (IV) into the hash state (`state->h`).
+ * Finally, it XORs the first element of the hash state (`state->h[0]`) with
+ * the provided parameter. This function is used for initializing the hash
+ * with specific configuration parameters, such as the desired output length.
+ *
+ * @param state A pointer to the BLAKE2s state structure to initialize.
+ * @param param A 32-bit unsigned integer parameter used to customize the initialization.
+ */
 static void blake2s_init_param(struct blake2s_state *state, const uint32_t param)
 {
 	int i;
@@ -115,12 +222,36 @@ static void blake2s_init_param(struct blake2s_state *state, const uint32_t param
 	state->h[0] ^= param;
 }
 
+/**
+ * @brief Initializes the BLAKE2s state structure for a given output length.
+ *
+ * This function initializes the internal state of the BLAKE2s hash function
+ * to produce a hash of the specified length. It calls the lower-level
+ * initialization function `blake2s_init_param()` with a parameter that
+ * includes the desired output length. It also stores the output length
+ * in the state structure.
+ *
+ * @param state A pointer to the BLAKE2s state structure to initialize.
+ * @param outlen The desired length of the output hash in bytes.
+ */
 static void blake2s_init(struct blake2s_state *state, const size_t outlen)
 {
 	blake2s_init_param(state, 0x01010000 | outlen);
 	state->outlen = outlen;
 }
 
+/**
+ * @brief Compresses a block of data into the BLAKE2s hash state.
+ *
+ * This function performs the core compression operation of the BLAKE2s
+ * algorithm. It processes a block of input data, updating the internal
+ * hash state.
+ *
+ * @param state A pointer to the BLAKE2s state structure.
+ * @param block A pointer to the input data block to compress.
+ * @param nblocks The number of blocks to compress.
+ * @param inc The amount to increment the counter by for each block.
+ */
 static void blake2s_compress(struct blake2s_state *state, const uint8_t *block, size_t nblocks, const uint32_t inc)
 {
 	uint32_t m[16];
@@ -141,6 +272,9 @@ static void blake2s_compress(struct blake2s_state *state, const uint8_t *block, 
 		v[14] = blake2s_iv[6] ^ state->f[0];
 		v[15] = blake2s_iv[7] ^ state->f[1];
 
+// The BLAKE2s round function is defined by the ROUND macro,
+// which in turn uses the G macro. These are expanded inline.
+// The ROUND macro is called 10 times.
 #define G(r, i, a, b, c, d) do {                  \
 	a += b + m[blake2s_sigma[r][2 * i + 0]];  \
 	d = ror32(d ^ a, 16);                     \
@@ -184,6 +318,17 @@ static void blake2s_compress(struct blake2s_state *state, const uint8_t *block, 
 	}
 }
 
+/**
+ * @brief Updates the BLAKE2s hash with a new block of data.
+ *
+ * This function takes a chunk of input data and updates the internal state
+ * of the BLAKE2s hash. It buffers the input and calls the compression
+ * function (`blake2s_compress`) when a full block of data is accumulated.
+ *
+ * @param state A pointer to the BLAKE2s state structure.
+ * @param inp A pointer to the input data to be hashed.
+ * @param inlen The length of the input data in bytes.
+ */
 static void blake2s_update(struct blake2s_state *state, const void *inp, size_t inlen)
 {
 	const size_t fill = BLAKE2S_BLOCK_LEN - state->buflen;
@@ -208,6 +353,16 @@ static void blake2s_update(struct blake2s_state *state, const void *inp, size_t 
 	state->buflen += inlen;
 }
 
+/**
+ * @brief Finalizes the BLAKE2s hashing process and retrieves the hash.
+ *
+ * This function sets the last block flag, pads the internal buffer if necessary,
+ * performs the final compression round, converts the hash state to little-endian,
+ * and copies the resulting hash to the output buffer.
+ *
+ * @param state A pointer to the BLAKE2s state structure.
+ * @param out A pointer to the buffer where the resulting hash will be written.
+ */
 static void blake2s_final(struct blake2s_state *state, uint8_t *out)
 {
 	blake2s_set_lastblock(state);
@@ -217,6 +372,18 @@ static void blake2s_final(struct blake2s_state *state, uint8_t *out)
 	memcpy(out, state->h, state->outlen);
 }
 
+/**
+ * @brief Reads the specified number of random bytes into the buffer, handling interruptions.
+ *
+ * This function repeatedly calls the `getrandom` system call until the requested
+ * number of bytes is read into the provided buffer. It handles `EINTR` errors
+ * by retrying the system call.
+ *
+ * @param buf A pointer to the buffer where the random bytes will be stored.
+ * @param count The number of random bytes to read.
+ * @param flags Flags to pass to the `getrandom` system call.
+ * @return The total number of bytes successfully read, or -1 on error.
+ */
 static ssize_t getrandom_full(void *buf, size_t count, unsigned int flags)
 {
 	ssize_t ret, total = 0;
@@ -236,6 +403,20 @@ static ssize_t getrandom_full(void *buf, size_t count, unsigned int flags)
 	return total;
 }
 
+/**
+ * @brief Reads the specified number of bytes from a file descriptor into the buffer, handling interruptions and EOF.
+ *
+ * This function repeatedly calls the `read` system call until the requested
+ * number of bytes is read into the provided buffer or the end of the file is reached.
+ * It handles `EINTR` errors by retrying the system call.
+ *
+ * @param fd The file descriptor to read from.
+ * @param buf A pointer to the buffer where the read bytes will be stored.
+ * @param count The number of bytes to read.
+ * @return The total number of bytes successfully read, or -1 on error. If the end of the file
+ * is reached before reading the requested number of bytes, the function returns the
+ * number of bytes read up to that point.
+ */
 static ssize_t read_full(int fd, void *buf, size_t count)
 {
 	ssize_t ret, total = 0;
@@ -257,6 +438,18 @@ static ssize_t read_full(int fd, void *buf, size_t count)
 	return total;
 }
 
+/**
+ * @brief Writes the specified number of bytes from the buffer to a file descriptor, handling interruptions.
+ *
+ * This function repeatedly calls the `write` system call until the requested
+ * number of bytes is written to the provided file descriptor. It handles `EINTR`
+ * errors by retrying the system call.
+ *
+ * @param fd The file descriptor to write to.
+ * @param buf A pointer to the buffer containing the bytes to write.
+ * @param count The number of bytes to write.
+ * @return The total number of bytes successfully written, or -1 on error.
+ */
 static ssize_t write_full(int fd, const void *buf, size_t count)
 {
 	ssize_t ret, total = 0;
@@ -276,6 +469,17 @@ static ssize_t write_full(int fd, const void *buf, size_t count)
 	return total;
 }
 
+/**
+ * @brief Determines the optimal seed length based on the kernel's entropy pool size.
+ *
+ * This function reads the value of `/proc/sys/kernel/random/poolsize` to determine
+ * the kernel's entropy pool size in bits. It then converts this value to bytes
+ * and returns it as the optimal seed length. If it cannot determine the pool size,
+ * it falls back to a minimum seed length. The returned value is also clamped
+ * within the defined minimum and maximum seed length limits.
+ *
+ * @return The optimal seed length in bytes.
+ */
 static size_t determine_optimal_seed_len(void)
 {
 	size_t ret = 0;
@@ -297,6 +501,20 @@ static size_t determine_optimal_seed_len(void)
 	return ret;
 }
 
+/**
+ * @brief Reads new random data to be used as a seed.
+ *
+ * This function attempts to read new random data of the specified length.
+ * It prioritizes using the `getrandom` system call with `GRND_NONBLOCK`
+ * and `GRND_INSECURE` flags. As a fallback, it reads from `/dev/urandom`.
+ *
+ * @param seed A pointer to the buffer where the new seed will be stored.
+ * @param len The desired length of the new seed in bytes.
+ * @param is_creditable A pointer to a boolean that will be set to true if the
+ * seed is considered creditable (obtained from a high-quality source),
+ * false otherwise.
+ * @return 0 on success, -1 on error (with errno set).
+ */
 static int read_new_seed(uint8_t *seed, size_t len, bool *is_creditable)
 {
 	ssize_t ret;
@@ -331,6 +549,20 @@ static int read_new_seed(uint8_t *seed, size_t len, bool *is_creditable)
 	return ret ? -1 : 0;
 }
 
+/**
+ * @brief Seeds the Linux kernel random number generator with the provided data.
+ *
+ * This function uses the `RNDADDENTROPY` ioctl on `/dev/urandom` to add
+ * the provided seed data to the kernel's random number generator. The amount
+ * of entropy added depends on the `credit` parameter.
+ *
+ * @param seed A pointer to the buffer containing the seed data.
+ * @param len The length of the seed data in bytes.
+ * @param credit A boolean indicating whether the seed is considered creditable.
+ * If true, the entropy count passed to the kernel will be the length of the seed
+ * in bits; otherwise, the entropy count will be 0.
+ * @return 0 on success, -1 on error (with errno set).
+ */
 static int seed_rng(uint8_t *seed, size_t len, bool credit)
 {
 	struct {
@@ -360,6 +592,23 @@ static int seed_rng(uint8_t *seed, size_t len, bool credit)
 	return ret ? -1 : 0;
 }
 
+/**
+ * @brief Seeds the random number generator from a file if it exists.
+ *
+ * This function attempts to open and read a seed file with the specified
+ * filename within the directory associated with the provided file descriptor.
+ * If the file exists, its contents are read, the file is unlinked, and the
+ * seed data is used to seed the kernel's random number generator. The length
+ * and content of the seed are also added to the BLAKE2s hash.
+ *
+ * @param filename The name of the seed file to attempt to read.
+ * @param dfd The file descriptor of the directory where the seed file is located.
+ * @param credit A boolean indicating whether the seed read from the file should
+ * be considered creditable when seeding the kernel.
+ * @param hash A pointer to the BLAKE2s state structure to update with the seed data.
+ * @return 0 if the file was successfully read and seeded, 0 if the file did not exist,
+ * or -1 on error (with errno set).
+ */
 static int seed_from_file_if_exists(const char *filename, int dfd, bool credit, struct blake2s_state *hash)
 {
 	uint8_t seed[MAX_SEED_LEN];
@@ -407,6 +656,16 @@ out:
 	return ret ? -1 : 0;
 }
 
+/**
+ * @brief Checks if the crediting of new seeds should be skipped based on an environment variable.
+ *
+ * This function reads the value of the `SEEDRNG_SKIP_CREDIT` environment variable.
+ * It returns `true` if the variable is set to "1", "true" (case-insensitive),
+ * "yes" (case-insensitive), or "y" (case-insensitive). In all other cases (including
+ * if the variable is not set), it returns `false`.
+ *
+ * @return `true` if crediting should be skipped, `false` otherwise.
+ */
 static bool skip_credit(void)
 {
 	const char *skip = getenv("SEEDRNG_SKIP_CREDIT");
@@ -414,6 +673,25 @@ static bool skip_credit(void)
 			!strcasecmp(skip, "yes") || !strcasecmp(skip, "y"));
 }
 
+/**
+ * @brief Main entry point of the seedrng program.
+ *
+ * This function initializes the BLAKE2s hash, seeds the kernel RNG from
+ * existing seed files, generates a new seed, updates the hash with the
+ * new seed, saves the new seed to a file (marking it as creditable or
+ * non-creditable), and handles error conditions.
+ *
+ * @param argc The number of command-line arguments (unused).
+ * @param argv An array of command-line arguments (unused).
+ * @return The exit status of the program. 0 indicates success, non-zero indicates an error.
+ * The lower bits of the return value can indicate specific errors:
+ * - Bit 1: Error seeding from the non-creditable file.
+ * - Bit 2: Error seeding from the creditable file.
+ * - Bit 3: Error reading new seed data.
+ * - Bit 4: Error opening seed file for writing.
+ * - Bit 5: Error writing seed file.
+ * - Bit 6: Error renaming seed file to make it creditable.
+ */
 int main(int argc __attribute__((unused)), char *argv[] __attribute__((unused)))
 {
 	static const char seedrng_prefix[] = "SeedRNG v1 Old+New Prefix";
