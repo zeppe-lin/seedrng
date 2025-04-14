@@ -2,7 +2,10 @@
 
 include config.mk
 
-all: seedrng
+all: seedrng seedrng.8
+
+seedrng.8: seedrng.8.scdoc
+	scdoc < $^ > $@
 
 install: all
 	mkdir -p ${DESTDIR}${PREFIX}/sbin
@@ -17,7 +20,7 @@ uninstall:
 	rm -f ${DESTDIR}${MANPREFIX}/man8/seedrng.8
 
 clean:
-	rm -f seedrng
+	rm -f seedrng seedrng.8
 	rm -f ${DIST}.tar.gz
 
 release:
