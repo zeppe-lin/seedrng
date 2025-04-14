@@ -7,7 +7,7 @@ Linux kernel random number generator from seed files.
 This distribution is a fork of [Jason A. Donenfeld][1]'s seedrng as of
 commit f68fee4 (Wed Apr 20 02:43:45 2022 +0200) with the following
 differences:
-  * add seedrng.8 manual page in scdoc(5) format
+  * add seedrng(8) manual page in scdoc(5) format
   * move paths declaration from seedrng.c to pathnames.h
   * documenting the code and add technical details note
   * suckless style build
@@ -29,7 +29,7 @@ Build time
   * C99 compiler
   * POSIX sh(1p), make(1p) and "mandatory utilities"
   * Linux kernel headers
-  * scdoc to build man page
+  * scdoc(1) to build manual page
 
 
 INSTALL
@@ -52,9 +52,8 @@ Basic usage
 -----------
 
 **As root**:
-```sh
-seedrng
-```
+
+    seedrng
 
 However, this invocation should generally come from init and shutdown
 scripts.
@@ -62,8 +61,8 @@ scripts.
 Online documentation
 --------------------
 
-Refer to the human-readable man page `seedrng.8.scdoc`, located in
-this repository.
+See seedrng.8.scdoc.
+
 
 Technical Details
 -----------------
@@ -75,25 +74,21 @@ increases over time, seedrng employs the **BLAKE2s** cryptographic
 hash function (with a 32-byte output) when creating new seed files.
 The process involves hashing the following data:
 
-```
-HASH(    "SeedRNG v1 Old+New Prefix"
-        || current_real_time
-        || system_boot_time
-        || length_of_old_seed
-        || old_seed_content
-        || length_of_new_seed_data
-        || new_seed_data
-    )
-```
+    HASH(    "SeedRNG v1 Old+New Prefix"
+            || current_real_time
+            || system_boot_time
+            || length_of_old_seed
+            || old_seed_content
+            || length_of_new_seed_data
+            || new_seed_data
+        )
 
 The resulting 32-byte hash is then appended to the newly generated
 random data to form the complete new seed.  Specifically, if
 `new_seed` represents the newly generated random data of a certain
 length, the final new seed stored to disk is constructed as:
 
-```
-final_new_seed = new_seed[:-32] || BLAKE2s_HASH(...)
-```
+    final_new_seed = new_seed[:-32] || BLAKE2s_HASH(...)
 
 Where:
 * `||` denotes concatenation.
