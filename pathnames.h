@@ -1,15 +1,19 @@
-//! \file  pathnames.h
-//! \brief Absolute filenames that seedrng wants for various defaults.
+/*! \file  pathnames.h
+ *  \brief Absolute filenames that seedrng wants for various defaults.
+ */
 
-#pragma once
+#ifndef PATHNAMES_H
+#define PATHNAMES_H
 
-//!< Directory where seed files are stored.
+/*!< Directory where seed files are stored. */
 #define SEED_DIR             LOCALSTATEDIR"/seedrng"
 
-//!< "Creditable" seed file.
+/*!< "Creditable" seed file. */
 #define CREDITABLE_SEED      "seed.credit"
 
-//!< "Non-creditable" seed file.
+/*!< "Non-creditable" seed file. */
 #define NON_CREDITABLE_SEED  "seed.no-credit"
 
-// End of file.
+#endif /* PATHNAMES_H */
+
+/* End of file. */
