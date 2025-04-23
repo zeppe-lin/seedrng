@@ -1,5 +1,6 @@
 # build files and artefacts
 seedrng
+seedrng.8
 
 # vim undo and swap files
 .*.un~
