@@ -38,8 +38,9 @@ INSTALL
 SeedRNG is meant to be used by init system projects.
 **Please do not use SeedRNG as a standalone program**.
 
-The shell commands `make && make install` should build and install
-this package.
+To build and install this package, run:
+
+    make && make install
 
 See `config.mk` file for configuration parameters, and `pathnames.h`
 for absolute filenames that SeedRNG wants for various defaults.
