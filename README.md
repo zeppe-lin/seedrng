@@ -1,14 +1,14 @@
 OVERVIEW
 ========
 
-This repository contains seedrng, a simple program for seeding the
+This repository contains `seedrng`, a simple program for seeding the
 Linux kernel random number generator from seed files.
 
-This distribution is a fork of [Jason A. Donenfeld][1]'s seedrng as of
+This distribution is a fork of [Jason A. Donenfeld][1]'s SeedRNG as of
 commit f68fee4 (Wed Apr 20 02:43:45 2022 +0200) with the following
 differences:
-  * add seedrng(8) manual page in scdoc(5) format
-  * move paths declaration from seedrng.c to pathnames.h
+  * add `seedrng(8)` manual page in `scdoc(5)` format
+  * move paths declaration from `seedrng.c` to `pathnames.h`
   * documenting the code and add technical details note
   * suckless style build
 
@@ -27,9 +27,9 @@ REQUIREMENTS
 Build time
 ----------
   * C99 compiler
-  * POSIX sh(1p), make(1p) and "mandatory utilities"
+  * POSIX `sh(1p)`, `make(1p)` and "mandatory utilities"
   * Linux kernel headers
-  * scdoc(1) to build manual page
+  * `scdoc(1)` to build manual page
 
 
 INSTALL
@@ -62,7 +62,7 @@ scripts.
 Online documentation
 --------------------
 
-See seedrng.8.scdoc.
+See `seedrng.8.scdoc`.
 
 
 Technical Details
@@ -71,7 +71,7 @@ Technical Details
 ### Entropy Hashing
 
 To ensure that the entropy in the seed files either stays the same or
-increases over time, seedrng employs the **BLAKE2s** cryptographic
+increases over time, `seedrng` employs the **BLAKE2s** cryptographic
 hash function (with a 32-byte output) when creating new seed files.
 The process involves hashing the following data:
 
@@ -105,7 +105,7 @@ preventing entropy loss.
 
 ### Path Declarations
 
-The absolute file paths used by seedrng for storing the creditable
+The absolute file paths used by `seedrng` for storing the creditable
 seed (`seed.credit`) and the non-creditable seed (`seed.no-credit`)
 are defined as constants in the `pathnames.h` header file.  The
 default location for these files is within the `/var/lib/seedrng/`
