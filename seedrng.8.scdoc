@@ -37,9 +37,9 @@ system-specific data.
 # ENVIRONMENT
 
 *SEEDRNG_SKIP_CREDIT*
-	If set to 1, true, yes, or y, this variable prevents *seedrng*
-	from marking new seed files as creditable, even if the RNG is
-	initialized.
+	If set to '1', 'true', 'yes', or 'y', this variable prevents
+	*seedrng* from marking new seed files as creditable, even if
+	the RNG is initialized.
 
 # FILES
 
