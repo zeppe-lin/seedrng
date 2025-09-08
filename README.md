@@ -1,72 +1,72 @@
 OVERVIEW
 ========
 
-This repository contains `seedrng`, a simple program for seeding the
-Linux kernel random number generator from seed files.
+`seedrng` seeds the Linux kernel random number generator from stored
+seed files.
 
-This distribution is a fork of [Jason A. Donenfeld][1]'s SeedRNG as of
-commit f68fee4 (Wed Apr 20 02:43:45 2022 +0200) with the following
-differences:
-  * add `seedrng(8)` manual page in `scdoc(5)` format
-  * move paths declaration from `seedrng.c` to `pathnames.h`
-  * documenting the code and add technical details note
-  * suckless style build
+It is a fork of [Jason A. Donenfeld][1]'s SeedRNG at commit `f68fee4`
+(Wed Apr 20 2022) with the following changes:
+  * Added `seedrng(8)` manual page in `scdoc(5)` format
+  * Moved paths definitions to `pathnames.h`
+  * Added code documentation and technical notes
+  * Simplified (suckless-style) build system
 
 [1]: mailto:Jason@zx2c4.com
 
-See git log for complete/further differences.
+See git log for full history.
 
-The original sources can be downloaded from:
-  1. git://git.zx2c4.com/seedrng    (git)
-  2. https://git.zx2c4.com/seedrng  (web)
+Original sources:
+  * git://git.zx2c4.com/seedrng    (git)
+  * https://git.zx2c4.com/seedrng  (web)
 
 
 REQUIREMENTS
 ============
 
-Build time
+Build-time
 ----------
   * C99 compiler
   * POSIX `sh(1p)`, `make(1p)` and "mandatory utilities"
   * Linux kernel headers
-  * `scdoc(1)` to build manual page
+  * `scdoc(1)` (to build manual pages)
+
+Runtime
+-------
+  * Linux kernel with `/dev/random` and `/dev/urandom` :)
 
 
-INSTALL
-=======
+INSTALLATION
+============
 
-SeedRNG is meant to be used by init system projects.
-**Please do not use SeedRNG as a standalone program**.
+`seedrng` is intended for init system integration.
+**Do not use manually as a standalone tool**.
 
-To build and install this package, run:
+Build and install:
 
     make && make install
 
-See `config.mk` file for configuration parameters, and `pathnames.h`
-for absolute filenames that SeedRNG wants for various defaults.
+Configuration parameters: `config.mk`
+
+Default paths: `pathnames.h`
 
 
 DOCUMENTATION
 =============
 
-Basic usage
------------
+Usage
+-----
 
-**As root**:
+Run as root (normally via init/shutdown scripts):
 
     seedrng
 
-However, this invocation should generally come from init and shutdown
-scripts.
-
-Online documentation
---------------------
+Manual pages
+------------
 
 See `seedrng.8.scdoc`.
 
-
-Technical Details
------------------
+Technical Notes
+---------------
 
 ### Entropy Hashing
 
@@ -93,7 +93,7 @@ length, the final new seed stored to disk is constructed as:
 
 Where:
 * `||` denotes concatenation.
-* `BLAKE2s_HASH(...)` represents the 32-byte BLAKE2s hash of the
+* `BLAKE2s_HASH(...)` represents the 32-byte **BLAKE2s** hash of the
   concatenated data described above.
 * `new_seed[:-32]` represents the initial portion of the newly
   generated random data, with the last 32 bytes reserved for the hash.
@@ -115,8 +115,7 @@ directory.
 LICENSE
 =======
 
-This program is licensed under any one of the following licenses, so
-that it can be incorporated into other software projects as needed:
+`seedrng` may be used under any of the following licenses:
   * GPL-2.0
   * Apache-2.0
   * MIT
