@@ -41,7 +41,7 @@ seed and system-specific data, so entropy never decreases.
 # FILES
 
 _/var/lib/seedrng_
-	Seed file directory.
+	Directory containing seed files used across reboots.
 
 _/var/lib/seedrng/seed.credit_
 	Creditable seed file, may initialize the RNG.
