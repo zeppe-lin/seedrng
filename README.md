@@ -1,8 +1,8 @@
 OVERVIEW
 ========
 
-`seedrng` seeds the Linux kernel random number generator from stored
-seed files.
+The `seedrng` utility seeds the Linux kernel random number generator
+from stored seed files.
 
 It is a fork of [Jason A. Donenfeld][1]'s SeedRNG at commit `f68fee4`
 (Wed Apr 20 2022) with the following changes:
