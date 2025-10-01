@@ -10,8 +10,8 @@ seedrng - seed the Linux kernel random number generator
 
 # DESCRIPTION
 
-*seedrng* seeds the Linux kernel random number generator (RNG) from
-stored seed files.
+The *seedrng* utility seeds the Linux kernel random number generator
+(RNG) from stored seed files.
 It takes no arguments and must be run as root.
 
 The kernel RNG cannot be initialized directly from shell scripts, and
