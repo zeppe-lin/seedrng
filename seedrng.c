@@ -16,7 +16,6 @@
  * \copyright (C) 2022 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved.
  */
 
-#include <linux/random.h>
 #include <sys/random.h>
 #include <sys/ioctl.h>
 #include <sys/file.h>
@@ -35,6 +34,33 @@
 #include <stdlib.h>
 
 #include "pathnames.h"
+
+#ifndef __GLIBC__
+/* Definitions copied from <linux/random.h> for musl libc compatibility. */
+/*
+ * Flags for getrandom(2)
+ *
+ * GRND_NONBLOCK	Don't block and return EAGAIN instead
+ * GRND_RANDOM		No effect
+ * GRND_INSECURE	Return non-cryptographic random bytes
+ */
+# define GRND_NONBLOCK	0x0001
+# define GRND_RANDOM	0x0002
+# define GRND_INSECURE	0x0004
+/* 
+ * Write bytes into the entropy pool and add to the entropy count.
+ * (Superuser only.)
+ */
+# define RNDADDENTROPY	_IOW( 'R', 0x03, int [2] )
+/* Clear entropy count to 0.  (Superuser only.) */
+# define RNDZAPENTCNT	_IO( 'R', 0x04 )
+/* Clear the entropy pool and associated counters.  (Superuser only.) */
+# define RNDCLEARPOOL	_IO( 'R', 0x06 )
+/* Reseed CRNG.  (Superuser only.) */
+# define RNDRESEEDCRNG	_IO( 'R', 0x07 )
+#else
+# include <linux/random.h>
+#endif /* ifndef __GLIBC__ */
 
 /*! \brief Lengths used by the BLAKE2s hash function. */
 enum blake2s_lengths {
