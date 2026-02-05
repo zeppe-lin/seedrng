@@ -11,7 +11,7 @@ commit `f68fee4` (Wed Apr 20 2022) with the following changes:
   * Moved paths definitions into `pathnames.h`
   * Added code documentation and technical notes
 
-See the git log for the complete history.
+See the git log for full history.
 
 Original sources:
   * git://git.zx2c4.com/seedrng    (git)
@@ -25,9 +25,9 @@ REQUIREMENTS
 Build-time
 ----------
   * C99 compiler
-  * POSIX `sh(1p)`, `make(1p)` and "mandatory utilities"
+  * POSIX `sh(1p)`, `make(1p)`, and "mandatory utilities"
   * Linux kernel headers (optional when building with musl)
-  * `scdoc(1)` for manual page generation
+  * `scdoc(1)` to generate manual pages
 
 Runtime
 -------
@@ -44,12 +44,12 @@ INSTALLATION
 To build and install:
 
 ```sh
-# as root
-make && make install
+make
+make install   # as root
 ```
 
-Configuration parameters are in `config.mk`.  
-Default file paths are defined in `pathnames.h`.
+Configuration parameters are defined in `config.mk`.  
+Default file paths are specified in `pathnames.h`.
 
 ---
 
@@ -68,7 +68,7 @@ seedrng
 Manual pages
 ------------
 
-See `seedrng.8.scdoc`.
+See `seedrng.8.scdoc` manual page.
 
 Technical Notes
 ---------------
