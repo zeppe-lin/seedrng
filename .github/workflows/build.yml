@@ -6,6 +6,7 @@ on:
     paths: &build_paths
       - "Makefile"
       - "config.mk"
+      - "pathnames.h"
       - "seedrng.c"
       - "seedrng.8.scdoc"
       - ".github/**"
